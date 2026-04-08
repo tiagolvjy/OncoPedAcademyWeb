@@ -9,11 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "firebase": "^12.11.0",
+    "firebase-admin": "^13.7.0",
     "formik": "^2.4.6",
     "js-cookie": "^3.0.5",
     "next": "15.5.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "recharts": "^3.8.1",
     "yup": "^1.7.1"
   },
   "devDependencies": {
