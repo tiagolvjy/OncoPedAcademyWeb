@@ -15,14 +15,13 @@ export default function LoginForm() {
     const router = useRouter();
     // ======================================================
     const onSubmitLogin = async ({email, password}: any) => {
-        
-        setErrorLogin(null);
-        const { success } = await UserServices.login(email, password);
-        if (success) 
-            router.push('/admin/dashboard');
-        else
-            setErrorLogin('Login ou senha incorreta');
-    }
+    setErrorLogin(null);
+    const { success, message } = await UserServices.login(email, password);
+    if (success) 
+        router.push('/admin/dashboard');
+    else
+        setErrorLogin(message ?? 'Login ou senha incorreta');
+}
     // -------
     const onSubmitResetPassword = async () => {
 
@@ -65,7 +64,7 @@ export default function LoginForm() {
 
                             <AppButton title="Entrar" onClick={handleSubmit} disabled={isSubmitting || !isValid} form="round" />
 
-                            <p className="ff-default text-center"> Não tem conta? Entre em contato com o desenvolvedor</p>
+                            <p className="ff-default text-center"> Não tem conta? Entre em contato com um administrador</p>
                         </div>
                     </form>
                 )}

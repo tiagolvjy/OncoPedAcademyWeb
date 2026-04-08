@@ -1,16 +1,29 @@
 "use client";
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import UserServices from "@/services/user";
 import Link from "next/link";
 import { AppButton, AppInput, AppLoader, AppModal, AppSelect } from "@/themes/components";
 import { getFlashData } from "@/helpers/router";
 import { useSearchParams } from "next/navigation";
+import { User, UserStatus } from "@/types/user";
+
+const ROLE_LABEL: Record<string, string> = {
+    admin:   'Administrador',
+    doctor:  'Médico',
+    student: 'Aluno',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+    active:   'Ativo',
+    inactive: 'Inativo',
+};
 
 export default function UserList() {
 
     const params = useSearchParams();
-    const [users, setUsers] = useState<any[]>([]);
-    const [userRemove, setUserRemove] = useState<any>(null);
+    const session = UserServices.getCurrentUser();
+    const [users, setUsers] = useState<User[]>([]);
+    const [userRemove, setUserRemove] = useState<User | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -19,123 +32,202 @@ export default function UserList() {
     const [filter, setFilter] = useState({
         name: '',
         email: '',
-        admin: '-1',
-    })
+        role: '-1',
+        status: '-1',
+    });
 
     // ======================================================================
-    const getUsers = async (page: number) => {
-        const { success, users, pagination } = await UserServices.getAll(page, filter);
-        if (success) {
+    // Protege admins e o próprio usuário logado
+    const isProtected = (user: User) => {
+        return user.role === 'admin' || user.id === session?.uid;
+    }
+    // ======================================================================
+    const getUsers = async (p: number) => {
+        setLoading(true);
+        const { success, users, pagination } = await UserServices.getAll(p, filter);
+        if (success && users) {
             setUsers(users);
             setPagination(pagination);
         }
         setLoading(false);
     }
     // -----------
-    const handleRemove = async (user: any) => {
+    const handleRemove = (user: User) => {
         setUserRemove(user);
         setSuccess(null);
         setError(null);
     }
     // -----------
     const handleModalConfirm = async () => {
+        if (!userRemove) return;
         setLoading(true);
         setUserRemove(null);
-        await UserServices.delete(userRemove.id)
-        setSuccess('Usuário excluido com sucesso!');
+        const { success } = await UserServices.delete(userRemove.id);
+        if (success) setSuccess('Usuário desativado com sucesso!');
+        else setError('Erro ao desativar usuário.');
         getUsers(1);
     }
     // -----------
-    const handleModalCancel = async () => {
-        setUserRemove(null);
+    const handleToggleStatus = async (user: User) => {
+        const newStatus: UserStatus = user.status === 'active' ? 'inactive' : 'active';
+        const { success } = await UserServices.toggleStatus(user.id, newStatus);
+        if (success) {
+            setSuccess(`Usuário ${newStatus === 'active' ? 'ativado' : 'desativado'} com sucesso!`);
+            getUsers(page);
+        } else {
+            setError('Erro ao alterar status do usuário.');
+        }
     }
     // -----------
-    const handlePage = async (newPage: number) => {
+    const handlePage = (newPage: number) => {
         setPage(newPage);
         getUsers(newPage);
     }
     // -----------
     useEffect(() => {
-        //Recupera usuário
         getUsers(page);
-        //Recupera mensagem 
         (() => {
             const data = getFlashData();
             if (data?.success) setSuccess(data.success);
             if (data?.error) setError(data.error);
-        })()
-
+        })();
     }, []);
     // ======================================================================
     return (
         <>
-            {/* FILTRO [INICIO] */}
+            {/* FILTROS */}
             <h3 className="text-[18px] font-bold">Filtros</h3>
             <div className="flex flex-col border-b-[2px] border-[#dedede] p-2">
-                <div className="flex gap-2">
-                    <AppInput type="text" label="Nome" value={filter.name} onChange={(e) => setFilter({ ...filter, name: e.target.value })} />
-                    <AppInput type="email" label="Email" value={filter.email} onChange={(e) => setFilter({ ...filter, email: e.target.value })} />
-
-                    <AppSelect label="Admininistrador" value={filter.admin} onChange={(e) => setFilter({ ...filter, admin: e.target.value })}>
+                <div className="flex gap-2 flex-wrap">
+                    <AppInput
+                        type="text"
+                        label="Nome"
+                        value={filter.name}
+                        onChange={(e) => setFilter({ ...filter, name: e.target.value })}
+                    />
+                    <AppInput
+                        type="email"
+                        label="Email"
+                        value={filter.email}
+                        onChange={(e) => setFilter({ ...filter, email: e.target.value })}
+                    />
+                    <AppSelect
+                        label="Perfil"
+                        value={filter.role}
+                        onChange={(e) => setFilter({ ...filter, role: e.target.value })}
+                    >
                         <option value="-1">Todos</option>
-                        <option value="1">Sim</option>
-                        <option value="0">Não</option>
+                        <option value="admin">Administrador</option>
+                        <option value="doctor">Médico</option>
+                        <option value="student">Aluno</option>
                     </AppSelect>
-
+                    <AppSelect
+                        label="Status"
+                        value={filter.status}
+                        onChange={(e) => setFilter({ ...filter, status: e.target.value })}
+                    >
+                        <option value="-1">Todos</option>
+                        <option value="active">Ativo</option>
+                        <option value="inactive">Inativo</option>
+                    </AppSelect>
                 </div>
                 <AppButton title="Filtrar" className="w-[100px]" type="outline" onClick={() => getUsers(page)} />
             </div>
-            {/* FILTRO [FIM] */}
 
-            {success && <p className="bg-[#6eef01] px-5 text-center rounded-full color-[white] p-1">{success}</p>}
-            {error && <p className="bg-[tomato] px-5 text-center rounded-full color-[white] p-1">{error}</p>}
+            {success && <p className="bg-[#7fc545] px-5 text-center rounded-full p-1 mt-2">{success}</p>}
+            {error   && <p className="bg-[tomato]  px-5 text-center rounded-full p-1 mt-2">{error}</p>}
 
-            {loading && <div className="flex justify-center"><AppLoader size={50} className="self-center" /></div>}
-            {!loading && <div className="overflow-x-auto">
-                <table className="min-w-full bg-white">
-                    {/* HEADER  */}
-                    <thead>
-                        <tr>
-                            <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Nome</th>
-                            <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Email</th>
-                            <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Admin</th>
-                            <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Ações</th>
-                        </tr>
-                    </thead>
+            {loading && <div className="flex justify-center mt-5"><AppLoader size={50} /></div>}
 
-                    {/* DADOS */}
-                    <tbody>
-                        {users.map(user => (
-                            <tr key={user.id}>
-                                <td className="py-2 px-4 border-b border-gray-200 text-sm">{user.name}</td>
-                                <td className="py-2 px-4 border-b border-gray-200 text-sm">{user.email}</td>
-                                <td className="py-2 px-4 border-b border-gray-200 text-sm">{user.admin ? 'ADMININISTRADOR' : 'USUÁRIO'}</td>
-
-                                <td className="py-2 px-4 border-b border-gray-200 text-sm">
-                                    <Link href={`/admin/usuarios/editar/${user.id}`}>
-                                        <i className="ion-edit text-[20px] text-[#1aab67] mx-[10px] cursor-pointer" />
-                                    </Link>
-                                    <i className="ion-ios-trash text-[20px] text-[#ed1b2d]  mx-[10px] cursor-pointer" onClick={() => handleRemove(user)} />
-                                </td>
+            {!loading && (
+                <div className="overflow-x-auto mt-3">
+                    <table className="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Nome</th>
+                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Email</th>
+                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Perfil</th>
+                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Status</th>
+                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Ações</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {users.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="py-4 text-center text-sm text-gray-400">
+                                        Nenhum usuário encontrado.
+                                    </td>
+                                </tr>
+                            )}
+                            {users.map(user => (
+                                <tr key={user.id} className={user.status === 'inactive' ? 'opacity-50' : ''}>
+                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{user.name}</td>
+                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{user.email}</td>
+                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{ROLE_LABEL[user.role] ?? user.role}</td>
+                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{STATUS_LABEL[user.status] ?? user.status}</td>
+                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">
+                                        {/* Editar */}
+                                        <Link href={`/admin/usuarios/editar/${user.id}`}>
+                                            <i className="ion-edit text-[20px] text-[#1aab67] mx-[10px] cursor-pointer" />
+                                        </Link>
 
-                {pagination && <div className="flex justify-end mt-[20px]">
-                    {!pagination.firstPage && <AppButton title="Anterior" className="mr-[10px]" icon="arrow-left-a" form="round" onClick={() => handlePage(page - 1)} />}
-                    {!pagination.lastPage && <AppButton title="Proximo" className="ml-[10px]" icon="arrow-right-a" form="round" onClick={() => handlePage(page + 1)} />}
-                </div>}
-            </div>}
+                                        {/* Ativar / Desativar */}
+                                        {!isProtected(user) ? (
+                                            <i
+                                                className={`ion-power text-[20px] mx-[10px] cursor-pointer ${user.status === 'active' ? 'text-[orange]' : 'text-[#1aab67]'}`}
+                                                title={user.status === 'active' ? 'Desativar' : 'Ativar'}
+                                                onClick={() => handleToggleStatus(user)}
+                                            />
+                                        ) : (
+                                            <i
+                                                className="ion-power text-[20px] mx-[10px] text-gray-300 cursor-not-allowed"
+                                                title="Ação não permitida"
+                                            />
+                                        )}
 
-            {userRemove && <AppModal title="Remover usuário">
-                <p>Deseja realmente remover o usuário {userRemove.name} ({userRemove.email})?</p>
-                <div className="flex justify-between p-[20px]">
-                    <AppButton title="Sim" icon="checkmark" form="round" color="#428f01" onClick={handleModalConfirm} />
-                    <AppButton title="Cancelar" icon="close" color="tomato" form="round" onClick={handleModalCancel} />
+                                        {/* Remover */}
+                                        {!isProtected(user) ? (
+                                            <i
+                                                className="ion-ios-trash text-[20px] text-[#ed1b2d] mx-[10px] cursor-pointer"
+                                                title="Desativar usuário"
+                                                onClick={() => handleRemove(user)}
+                                            />
+                                        ) : (
+                                            <i
+                                                className="ion-ios-trash text-[20px] mx-[10px] text-gray-300 cursor-not-allowed"
+                                                title="Ação não permitida"
+                                            />
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {pagination && (
+                        <div className="flex justify-end mt-[20px]">
+                            {!pagination.firstPage && (
+                                <AppButton title="Anterior" className="mr-[10px]" icon="arrow-left-a" form="round" onClick={() => handlePage(page - 1)} />
+                            )}
+                            {!pagination.lastPage && (
+                                <AppButton title="Próximo" className="ml-[10px]" icon="arrow-right-a" form="round" onClick={() => handlePage(page + 1)} />
+                            )}
+                        </div>
+                    )}
                 </div>
+            )}
 
-            </AppModal>}
+            {/* MODAL — confirmar desativação */}
+            {userRemove && (
+                <AppModal title="Desativar usuário">
+                    <p>Deseja realmente desativar o usuário <strong>{userRemove.name}</strong> ({userRemove.email})?</p>
+                    <p className="text-sm text-gray-500 mt-1">O usuário não será excluído, apenas desativado.</p>
+                    <div className="flex justify-between p-[20px]">
+                        <AppButton title="Sim" icon="checkmark" form="round" color="#7fc545" onClick={handleModalConfirm} />
+                        <AppButton title="Cancelar" icon="close" color="tomato" form="round" onClick={() => setUserRemove(null)} />
+                    </div>
+                </AppModal>
+            )}
         </>
-    )
+    );
 }
