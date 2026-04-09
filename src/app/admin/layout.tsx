@@ -15,11 +15,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="bg-(--background-secondary) flex h-screen">
+    <div className="bg-(--background-secondary) flex h-screen overflow-hidden">
       {/* MENU */}
       <AppMenu />
       {/* MAIN */}
-      <div className="flex flex-1 ml-[30px]">
+      <div className="flex flex-1 ml-[30px] overflow-y-auto">
         {children}
       </div>
     </div>
