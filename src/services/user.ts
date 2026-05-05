@@ -139,7 +139,7 @@ const UserServices = {
             const snapshot = await getDocs(q);
             const users = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as User));
 
-            // Filtros client-side para name/email (Firestore não faz LIKE)
+            // Filtros client-side para name/email
             const filtered = users.filter(u => {
                 if (filter.name && !u.name.toLowerCase().includes(filter.name.toLowerCase()))
                     return false;
@@ -180,7 +180,7 @@ const UserServices = {
      */
     create: async (data: Partial<User> & { password: string }): Promise<{ success: boolean; error?: string }> => {
         try {
-            // Chama Route Handler para criar no Auth (client SDK não pode criar outros usuários)
+            // Chama Route Handler para criar no Auth
             const response = await fetch('/api/users/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

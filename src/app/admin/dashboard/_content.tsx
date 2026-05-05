@@ -13,9 +13,7 @@ import {
     ResponsiveContainer,
 } from "recharts";
 
-// ======================================================================
-// CARD DE MÉTRICA
-// ======================================================================
+
 function MetricCard({ title, value, icon, color }: {
     title: string;
     value: number;
@@ -35,9 +33,7 @@ function MetricCard({ title, value, icon, color }: {
     );
 }
 
-// ======================================================================
-// TOOLTIP CUSTOMIZADO DO GRÁFICO
-// ======================================================================
+
 function CustomTooltip({ active, payload, label }: any) {
     if (!active || !payload?.length) return null;
     return (
@@ -57,9 +53,7 @@ function CustomTooltip({ active, payload, label }: any) {
     );
 }
 
-// ======================================================================
-// COMPONENTE PRINCIPAL
-// ======================================================================
+
 export default function DashboardContent() {
 
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -93,7 +87,6 @@ export default function DashboardContent() {
 
             {error && <p className="bg-[tomato] px-5 text-center rounded-full p-1">{error}</p>}
 
-            {/* CARDS DE MÉTRICAS */}
             {metrics && (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                     <MetricCard
