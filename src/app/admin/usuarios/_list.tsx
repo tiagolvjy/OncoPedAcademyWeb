@@ -37,7 +37,6 @@ export default function UserList() {
     });
 
     // ======================================================================
-    // Protege admins e o próprio usuário logado
     const isProtected = (user: User) => {
         return user.role === 'admin' || user.id === session?.uid;
     }

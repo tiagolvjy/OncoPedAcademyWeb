@@ -52,7 +52,6 @@ export default function QuestionForm({ questionnaireID }: { questionnaireID: str
     const handleRemoveOption = (index: number) => {
         if (options.length <= 2) return;
         const updated = options.filter((_, i) => i !== index);
-        // Garante que sempre há uma correta
         const hasCorrect = updated.some(o => o.isCorrect);
         if (!hasCorrect) updated[0].isCorrect = true;
         setOptions(updated);

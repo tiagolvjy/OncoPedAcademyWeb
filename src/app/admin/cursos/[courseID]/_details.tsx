@@ -21,7 +21,7 @@ export default function CourseDetails({ courseID }: { courseID: string }) {
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // Modais
+
     const [moduleToDelete, setModuleToDelete] = useState<Module | null>(null);
     const [lessonToDelete, setLessonToDelete] = useState<{ lesson: Lesson; moduleId: string } | null>(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
@@ -34,7 +34,6 @@ export default function CourseDetails({ courseID }: { courseID: string }) {
             router.replace('/admin/cursos');
             return;
         }
-        // Verifica permissão
         if (session?.role === 'doctor' && course.authorId !== session.uid) {
             setFlashData({ error: 'Sem permissão para visualizar este curso.' });
             router.replace('/admin/cursos');
@@ -49,7 +48,7 @@ export default function CourseDetails({ courseID }: { courseID: string }) {
     }
     // -----------
     const loadLessons = async (moduleId: string) => {
-        if (lessons[moduleId]) return; // já carregado
+        if (lessons[moduleId]) return;
         const { success, lessons: data } = await CourseServices.getLessons(courseID, moduleId);
         if (success && data) setLessons(prev => ({ ...prev, [moduleId]: data }));
     }
@@ -106,7 +105,6 @@ export default function CourseDetails({ courseID }: { courseID: string }) {
         setLessonToDelete(null);
         if (success) {
             setSuccess('Aula excluída com sucesso!');
-            // Recarrega aulas do módulo
             setLessons(prev => {
                 const updated = { ...prev };
                 delete updated[lessonToDelete.moduleId];
@@ -159,7 +157,7 @@ export default function CourseDetails({ courseID }: { courseID: string }) {
                                 />
                             </>
                         )}
-                        {/* Aprovar selo — apenas admin */}
+
                         {session?.role === 'admin' && (
                             <AppButton
                                 title={course.verified ? 'Remover selo' : 'Aprovar selo'}
@@ -169,7 +167,7 @@ export default function CourseDetails({ courseID }: { courseID: string }) {
                                 onClick={handleToggleVerified}
                             />
                         )}
-                        {/* Excluir — apenas admin ou dono */}
+
                         {canEdit && (
                             <AppButton
                                 title="Excluir curso"
