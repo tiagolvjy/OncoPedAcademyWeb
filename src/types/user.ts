@@ -7,7 +7,8 @@ export interface User {
     email: string;
     role: UserRole;
     status: UserStatus;
-    photoURL?: string;
+    photoURL?: string | null;
+    cpf?: string;
     phone?: string;
     birthDate?: string;
     gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
