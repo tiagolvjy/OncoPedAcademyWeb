@@ -140,14 +140,14 @@ export default function UserList() {
 
             {!loading && (
                 <div className="overflow-x-auto mt-3">
-                    <table className="min-w-full bg-white">
+                    <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
                         <thead>
-                            <tr>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Nome</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Email</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Perfil</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Status</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Ações</th>
+                            <tr className="bg-[#1a1f36] text-white">
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Nome</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Email</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Perfil</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Status</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -159,12 +159,23 @@ export default function UserList() {
                                 </tr>
                             )}
                             {users.map(user => (
-                                <tr key={user.id} className={user.status === 'inactive' ? 'opacity-50' : ''}>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{user.name}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{user.email}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{ROLE_LABEL[user.role] ?? user.role}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{STATUS_LABEL[user.status] ?? user.status}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">
+                                <tr
+                                    key={user.id}
+                                    className={`hover:bg-[#f9fafb] transition-colors border-b border-gray-100 ${user.status === 'inactive' ? 'opacity-50' : ''}`}
+                                >
+                                    <td className="py-3 px-4 text-sm">{user.name}</td>
+                                    <td className="py-3 px-4 text-sm">{user.email}</td>
+                                    <td className="py-3 px-4 text-sm">{ROLE_LABEL[user.role] ?? user.role}</td>
+                                    <td className="py-3 px-4 text-sm">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                            user.status === 'active'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-gray-100 text-gray-500'
+                                        }`}>
+                                            {STATUS_LABEL[user.status] ?? user.status}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 px-4 text-sm">
                                         {/* Editar */}
                                         <Link href={`/admin/usuarios/editar/${user.id}`}>
                                             <i className="ion-edit text-[20px] text-[#1aab67] mx-[10px] cursor-pointer" />
