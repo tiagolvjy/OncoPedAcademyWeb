@@ -131,15 +131,15 @@ export default function QuestionnaireList() {
 
             {!loading && (
                 <div className="overflow-x-auto mt-3">
-                    <table className="min-w-full bg-white">
+                    <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
                         <thead>
-                            <tr>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Título</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Tipo</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Curso vinculado</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Tempo limite</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Status</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Ações</th>
+                            <tr className="bg-[#1a1f36] text-white">
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Título</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Tipo</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Curso vinculado</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Tempo limite</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Status</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -151,28 +151,32 @@ export default function QuestionnaireList() {
                                 </tr>
                             )}
                             {questionnaires.map(item => (
-                                <tr key={item.id} className={item.status === 'inactive' ? 'opacity-50' : ''}>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm font-medium">{item.title}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{TYPE_LABEL[item.type] ?? item.type}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{item.courseTitle ?? '—'}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{item.timeLimit ? `${item.timeLimit} min` : '—'}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{STATUS_LABEL[item.status]}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">
-                                        {/* Ver detalhes / questões */}
+                                <tr key={item.id} className={`hover:bg-[#f9fafb] transition-colors border-b border-gray-100 ${item.status === 'inactive' ? 'opacity-50' : ''}`}>
+                                    <td className="py-3 px-4 text-sm font-medium">{item.title}</td>
+                                    <td className="py-3 px-4 text-sm">{TYPE_LABEL[item.type] ?? item.type}</td>
+                                    <td className="py-3 px-4 text-sm">{item.courseTitle ?? '—'}</td>
+                                    <td className="py-3 px-4 text-sm">{item.timeLimit ? `${item.timeLimit} min` : '—'}</td>
+                                    <td className="py-3 px-4 text-sm">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                            item.status === 'active'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-gray-100 text-gray-500'
+                                        }`}>
+                                            {STATUS_LABEL[item.status]}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 px-4 text-sm">
                                         <Link href={`/admin/questionarios/${item.id}`}>
                                             <i className="ion-eye text-[20px] text-[#4703D0] mx-[10px] cursor-pointer" title="Ver questões" />
                                         </Link>
-                                        {/* Editar */}
                                         <Link href={`/admin/questionarios/${item.id}/editar`}>
                                             <i className="ion-edit text-[20px] text-[#1aab67] mx-[10px] cursor-pointer" title="Editar" />
                                         </Link>
-                                        {/* Ativar / Desativar */}
                                         <i
                                             className={`ion-power text-[20px] mx-[10px] cursor-pointer ${item.status === 'active' ? 'text-[orange]' : 'text-[#1aab67]'}`}
                                             title={item.status === 'active' ? 'Desativar' : 'Ativar'}
                                             onClick={() => handleToggleStatus(item)}
                                         />
-                                        {/* Excluir */}
                                         <i
                                             className="ion-ios-trash text-[20px] text-[#ed1b2d] mx-[10px] cursor-pointer"
                                             title="Excluir"

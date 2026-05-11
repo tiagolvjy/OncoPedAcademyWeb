@@ -4,6 +4,7 @@ import AppMenuItem from "./menu-item";
 import UserServices from "@/services/user";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function AppMenu() {
     const router = useRouter();
@@ -23,18 +24,42 @@ export default function AppMenu() {
     if (!mounted) return null;
 
     return (
-        <div className="w-[80px] md:w-[300px] bg-(--background-primary) flex flex-col h-screen sticky top-0 flex-shrink-0">
-            <div className="hidden md:flex flex-col pt-[50px] px-4">
-                <h1 className="text-[20px] font-bold text-center">OncoPed Academy - Gerenciador</h1>
-                <h2 className="text-center">Bem vindo!</h2>
-                <h2 className="text-center font-bold">{user?.name}</h2>
+        <div className="w-[70px] md:w-[260px] bg-(--background-primary) flex flex-col h-screen sticky top-0 flex-shrink-0 border-r border-[#e5e7eb]">
+
+            {/* LOGO */}
+                <div className="flex items-center justify-center py-5 border-b border-[#e5e7eb] bg-white">
+                    <Image
+                        src="/assets/img/logoOncoPedAcademy.png"
+                        alt="OncoPed Academy"
+                        width={160}
+                        height={60}
+                        className="hidden md:block object-contain mx-auto"
+                        style={{ background: 'transparent' }}
+                    />
+                    <Image
+                        src="/assets/img/logoOncoPedAcademy.png"
+                        alt="OncoPed Academy"
+                        width={44}
+                        height={44}
+                        className="block md:hidden object-contain mx-auto"
+                        style={{ background: 'transparent' }}
+                    />
+                </div>
+
+            {/* USUÁRIO */}
+            <div className="hidden md:flex flex-col items-center px-4 py-4 border-b border-[#e5e7eb]">
+                <div className="w-[48px] h-[48px] rounded-full bg-[#e5e7eb] flex items-center justify-center mb-2">
+                    <i className="ion-person text-[22px] text-[#9ca3af]" />
+                </div>
+                <p className="text-[13px] font-semibold text-center">{user?.name}</p>
+                <p className="text-[11px] text-[#6b7280] text-center capitalize">{user?.role === 'admin' ? 'Administrador' : user?.role === 'doctor' ? 'Médico' : 'Aluno'}</p>
                 <Link href={`/admin/usuarios/editar/${user?.uid}`}>
-                    <p className="text-center">Editar perfil</p>
+                    <p className="text-[11px] text-[#2563eb] mt-1 hover:underline">Editar perfil</p>
                 </Link>
-                <div className="bg-(--background-secondary) h-[6px] my-5"/>
             </div>
+
             {/* OPÇÕES */}
-            <div className="pl-[30px] mt-[30px] flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto py-4 px-2">
                 <AppMenuItem title="Dashboard"     icon="grid"            url="/admin/dashboard"/>
                 {user?.role === 'admin' && (
                     <AppMenuItem title="Usuários"  icon="ios-people"      url="/admin/usuarios"/>
@@ -43,12 +68,16 @@ export default function AppMenu() {
                 <AppMenuItem title="Certificados"  icon="ribbon-a"        url="/admin/certificados"/>
                 <AppMenuItem title="Questionários" icon="ios-list"        url="/admin/questionarios"/>
             </div>
+
             {/* LOGOUT */}
-            <div className="pb-[50px]">
-                <h1 className="text-[18px] text-center text-[red] cursor-pointer font-bold" onClick={handleLogout}>
-                    <i className="ion-log-out mr-[5px]"/>
-                    <span className="hidden md:flex justify-center">Sair</span>
-                </h1>
+            <div className="border-t border-[#e5e7eb] px-2 py-4">
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-center md:justify-start gap-2 px-3 py-2 rounded-lg text-[red] hover:bg-red-50 transition-colors cursor-pointer"
+                >
+                    <i className="ion-log-out text-[18px]"/>
+                    <span className="hidden md:block text-[14px] font-semibold">Sair</span>
+                </button>
             </div>
         </div>
     )

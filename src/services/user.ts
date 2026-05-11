@@ -121,43 +121,42 @@ const UserServices = {
     getAll: async (
         page: number,
         filter: { name?: string; email?: string; role?: string; status?: string } = {},
-        lastDoc?: DocumentSnapshot
     ): Promise<{ success: boolean; users?: User[]; pagination?: any }> => {
         try {
-            let q = query(collection(db, COLLECTION), orderBy('name'), limit(PAGE_SIZE));
+            const snapshot = await getDocs(collection(db, COLLECTION));
+            let users = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as User));
 
-            // Filtros
+            // Todos os filtros client-side
             if (filter.role && filter.role !== '-1')
-                q = query(q, where('role', '==', filter.role));
+                users = users.filter(u => u.role === filter.role);
 
             if (filter.status && filter.status !== '-1')
-                q = query(q, where('status', '==', filter.status));
+                users = users.filter(u => u.status === filter.status);
 
-            if (page > 1 && lastDoc)
-                q = query(q, startAfter(lastDoc));
+            if (filter.name)
+                users = users.filter(u => u.name.toLowerCase().includes(filter.name!.toLowerCase()));
 
-            const snapshot = await getDocs(q);
-            const users = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as User));
+            if (filter.email)
+                users = users.filter(u => u.email.toLowerCase().includes(filter.email!.toLowerCase()));
 
-            // Filtros client-side para name/email
-            const filtered = users.filter(u => {
-                if (filter.name && !u.name.toLowerCase().includes(filter.name.toLowerCase()))
-                    return false;
-                if (filter.email && !u.email.toLowerCase().includes(filter.email.toLowerCase()))
-                    return false;
-                return true;
-            });
+            // Ordenar por nome
+            users.sort((a, b) => a.name.localeCompare(b.name));
+
+            // Paginação manual
+            const total = users.length;
+            const start = (page - 1) * PAGE_SIZE;
+            const paginated = users.slice(start, start + PAGE_SIZE);
 
             return {
                 success: true,
-                users: filtered,
+                users: paginated,
                 pagination: {
                     firstPage: page === 1,
-                    lastPage: snapshot.docs.length < PAGE_SIZE,
-                    lastDoc: snapshot.docs[snapshot.docs.length - 1],
+                    lastPage: start + PAGE_SIZE >= total,
                 }
             };
         } catch (error) {
+            console.error('getAll error:', error);
             return { success: false };
         }
     },

@@ -30,42 +30,37 @@ const CourseServices = {
         session: UserSession,
         page: number,
         filter: { title?: string; status?: string; verified?: string } = {},
-        lastDoc?: DocumentSnapshot
     ): Promise<{ success: boolean; courses?: Course[]; pagination?: any }> => {
         try {
-            let q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'), limit(PAGE_SIZE));
+            const snapshot = await getDocs(collection(db, COLLECTION));
+            let courses = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Course));
 
             // Médico só vê os próprios cursos
             if (session.role === 'doctor')
-                q = query(q, where('authorId', '==', session.uid));
+                courses = courses.filter(c => c.authorId === session.uid);
 
-            // Filtros
             if (filter.status && filter.status !== '-1')
-                q = query(q, where('status', '==', filter.status));
+                courses = courses.filter(c => c.status === filter.status);
 
             if (filter.verified && filter.verified !== '-1')
-                q = query(q, where('verified', '==', filter.verified === '1'));
+                courses = courses.filter(c => c.verified === (filter.verified === '1'));
 
-            if (page > 1 && lastDoc)
-                q = query(q, startAfter(lastDoc));
+            if (filter.title)
+                courses = courses.filter(c => c.title.toLowerCase().includes(filter.title!.toLowerCase()));
 
-            const snapshot = await getDocs(q);
-            const courses = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Course));
+            // Ordenar por data de criação desc
+            courses.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-            // Filtro client-side para título
-            const filtered = courses.filter(c => {
-                if (filter.title && !c.title.toLowerCase().includes(filter.title.toLowerCase()))
-                    return false;
-                return true;
-            });
+            const total = courses.length;
+            const start = (page - 1) * PAGE_SIZE;
+            const paginated = courses.slice(start, start + PAGE_SIZE);
 
             return {
                 success: true,
-                courses: filtered,
+                courses: paginated,
                 pagination: {
                     firstPage: page === 1,
-                    lastPage: snapshot.docs.length < PAGE_SIZE,
-                    lastDoc: snapshot.docs[snapshot.docs.length - 1],
+                    lastPage: start + PAGE_SIZE >= total,
                 }
             };
         } catch (error) {

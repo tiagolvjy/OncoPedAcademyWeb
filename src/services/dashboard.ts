@@ -23,6 +23,13 @@ export interface CourseApprovalData {
     totalStudents: number;
 }
 
+export interface LevelDistribution {
+    level: string;
+    count: number;
+    color: string;
+}
+
+
 const DashboardServices = {
 
     /**
@@ -119,6 +126,65 @@ const DashboardServices = {
             return { success: false };
         }
     },
+
+    getLevelDistribution: async (): Promise<{ success: boolean; data?: LevelDistribution[] }> => {
+    try {
+        const snapshot = await getDocs(
+            query(
+                collection(db, 'questionnaire_results'),
+                where('type', '==', 'leveling')
+            )
+        );
+
+        if (snapshot.empty) return { success: true, data: [] };
+
+        // Pega o resultado mais recente por aluno
+        const byUser: Record<string, number> = {};
+        snapshot.docs.forEach(d => {
+            const data = d.data();
+            if (!data.userId || data.score === undefined) return;
+            // Mantém o mais recente (maior score ou último)
+            if (!(data.userId in byUser) || data.completedAt > (byUser[data.userId + '_date'] ?? ''))
+                byUser[data.userId] = data.score;
+        });
+
+        // Classifica por nível
+        const levels: Record<string, number> = {
+            'Muito Iniciante': 0,
+            'Iniciante': 0,
+            'Intermediário': 0,
+            'Avançado': 0,
+            'Especialista': 0,
+        };
+
+        Object.values(byUser).forEach(score => {
+            if (score <= 19)       levels['Muito Iniciante']++;
+            else if (score <= 39)  levels['Iniciante']++;
+            else if (score <= 59)  levels['Intermediário']++;
+            else if (score <= 79)  levels['Avançado']++;
+            else                   levels['Especialista']++;
+        });
+
+        const colors: Record<string, string> = {
+            'Muito Iniciante': '#94a3b8',
+            'Iniciante':       '#60a5fa',
+            'Intermediário':   '#34d399',
+            'Avançado':        '#f59e0b',
+            'Especialista':    '#4703D0',
+        };
+
+        const data: LevelDistribution[] = Object.entries(levels).map(([level, count]) => ({
+            level,
+            count,
+            color: colors[level],
+        }));
+
+        return { success: true, data };
+    } catch (error) {
+        console.error(error);
+        return { success: false };
+    }
+},
 };
 
 export default DashboardServices;
