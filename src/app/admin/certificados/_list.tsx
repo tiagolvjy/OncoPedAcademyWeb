@@ -93,17 +93,16 @@ export default function CertificateList() {
 
             {!loading && (
                 <div className="overflow-x-auto mt-3">
-                    <table className="min-w-full bg-white">
+                    <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
                         <thead>
-                            <tr>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Aluno</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Email</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Curso</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Data de emissão</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Código</th>
-                                {/* Apenas admin pode remover */}
+                            <tr className="bg-[#1a1f36] text-white">
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Aluno</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Email</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Curso</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Data de emissão</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Código</th>
                                 {session?.role === 'admin' && (
-                                    <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Ações</th>
+                                    <th className="py-3 px-4 text-left text-sm font-semibold">Ações</th>
                                 )}
                             </tr>
                         </thead>
@@ -116,18 +115,16 @@ export default function CertificateList() {
                                 </tr>
                             )}
                             {certificates.map(cert => (
-                                <tr key={cert.id}>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{cert.userName}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{cert.userEmail}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{cert.courseTitle}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">
+                                <tr key={cert.id} className="hover:bg-[#f9fafb] transition-colors border-b border-gray-100">
+                                    <td className="py-3 px-4 text-sm">{cert.userName}</td>
+                                    <td className="py-3 px-4 text-sm">{cert.userEmail}</td>
+                                    <td className="py-3 px-4 text-sm">{cert.courseTitle}</td>
+                                    <td className="py-3 px-4 text-sm">
                                         {new Date(cert.issuedAt).toLocaleDateString('pt-BR')}
                                     </td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm font-mono text-xs">
-                                        {cert.validationCode}
-                                    </td>
+                                    <td className="py-3 px-4 text-sm font-mono text-xs">{cert.validationCode}</td>
                                     {session?.role === 'admin' && (
-                                        <td className="py-2 px-4 border-b border-gray-200 text-sm">
+                                        <td className="py-3 px-4 text-sm">
                                             <i
                                                 className="ion-ios-trash text-[20px] text-[#ed1b2d] mx-[10px] cursor-pointer"
                                                 onClick={() => handleRemove(cert)}

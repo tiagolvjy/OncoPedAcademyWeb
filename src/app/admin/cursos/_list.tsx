@@ -139,16 +139,16 @@ export default function CourseList() {
 
             {!loading && (
                 <div className="overflow-x-auto mt-3">
-                    <table className="min-w-full bg-white">
+                    <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
                         <thead>
-                            <tr>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Título</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Autor</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Status</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Verificado</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Duração</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Certificado</th>
-                                <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Ações</th>
+                            <tr className="bg-[#1a1f36] text-white">
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Título</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Autor</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Status</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Verificado</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Duração</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Certificado</th>
+                                <th className="py-3 px-4 text-left text-sm font-semibold">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -160,34 +160,38 @@ export default function CourseList() {
                                 </tr>
                             )}
                             {courses.map(course => (
-                                <tr key={course.id}>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm font-medium">{course.title}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{course.authorName}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{STATUS_LABEL[course.status] ?? course.status}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">
+                                <tr key={course.id} className="hover:bg-[#f9fafb] transition-colors border-b border-gray-100">
+                                    <td className="py-3 px-4 text-sm font-medium">{course.title}</td>
+                                    <td className="py-3 px-4 text-sm">{course.authorName}</td>
+                                    <td className="py-3 px-4 text-sm">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                            course.status === 'published'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-gray-100 text-gray-500'
+                                        }`}>
+                                            {STATUS_LABEL[course.status] ?? course.status}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 px-4 text-sm">
                                         {course.verified
                                             ? <span className="text-[#1aab67] font-bold">✓ Verificado</span>
                                             : <span className="text-gray-400">Não</span>
                                         }
                                     </td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{course.duration}h</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">{course.hasCertificate ? 'Sim' : 'Não'}</td>
-                                    <td className="py-2 px-4 border-b border-gray-200 text-sm">
-                                        {/* Ver detalhes / módulos */}
+                                    <td className="py-3 px-4 text-sm">{course.duration}h</td>
+                                    <td className="py-3 px-4 text-sm">{course.hasCertificate ? 'Sim' : 'Não'}</td>
+                                    <td className="py-3 px-4 text-sm">
                                         <Link href={`/admin/cursos/${course.id}`}>
                                             <i className="ion-eye text-[20px] text-[#4703D0] mx-[10px] cursor-pointer" title="Ver detalhes" />
                                         </Link>
-                                        {/* Editar */}
                                         <Link href={`/admin/cursos/${course.id}/editar`}>
                                             <i className="ion-edit text-[20px] text-[#1aab67] mx-[10px] cursor-pointer" title="Editar" />
                                         </Link>
-                                        {/* Publicar / Despublicar */}
                                         <i
                                             className={`ion-power text-[20px] mx-[10px] cursor-pointer ${course.status === 'published' ? 'text-[orange]' : 'text-[#1aab67]'}`}
                                             title={course.status === 'published' ? 'Despublicar' : 'Publicar'}
                                             onClick={() => handleToggleStatus(course)}
                                         />
-                                        {/* Aprovar / Remover selo — apenas admin */}
                                         {session?.role === 'admin' && (
                                             <i
                                                 className={`ion-ribbon text-[20px] mx-[10px] cursor-pointer ${course.verified ? 'text-[orange]' : 'text-[#1aab67]'}`}
@@ -195,7 +199,6 @@ export default function CourseList() {
                                                 onClick={() => handleToggleVerified(course)}
                                             />
                                         )}
-                                        {/* Excluir */}
                                         <i
                                             className="ion-ios-trash text-[20px] text-[#ed1b2d] mx-[10px] cursor-pointer"
                                             title="Excluir"

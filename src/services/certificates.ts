@@ -28,37 +28,34 @@ const CertificateServices = {
         session: UserSession,
         page: number,
         filter: { userName?: string; courseTitle?: string } = {},
-        lastDoc?: DocumentSnapshot
     ): Promise<{ success: boolean; certificates?: Certificate[]; pagination?: any }> => {
         try {
-            let q = query(collection(db, COLLECTION), orderBy('issuedAt', 'desc'), limit(PAGE_SIZE));
+            const snapshot = await getDocs(collection(db, COLLECTION));
+            let certificates = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Certificate));
 
             // Médico só vê certificados dos próprios cursos
             if (session.role === 'doctor')
-                q = query(q, where('authorId', '==', session.uid));
+                certificates = certificates.filter(c => c.authorId === session.uid);
 
-            if (page > 1 && lastDoc)
-                q = query(q, startAfter(lastDoc));
+            if (filter.userName)
+                certificates = certificates.filter(c => c.userName.toLowerCase().includes(filter.userName!.toLowerCase()));
 
-            const snapshot = await getDocs(q);
-            const certificates = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Certificate));
+            if (filter.courseTitle)
+                certificates = certificates.filter(c => c.courseTitle.toLowerCase().includes(filter.courseTitle!.toLowerCase()));
 
-            // Filtros client-side
-            const filtered = certificates.filter(c => {
-                if (filter.userName && !c.userName.toLowerCase().includes(filter.userName.toLowerCase()))
-                    return false;
-                if (filter.courseTitle && !c.courseTitle.toLowerCase().includes(filter.courseTitle.toLowerCase()))
-                    return false;
-                return true;
-            });
+            // Ordenar por data de emissão desc
+            certificates.sort((a, b) => new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime());
+
+            const total = certificates.length;
+            const start = (page - 1) * PAGE_SIZE;
+            const paginated = certificates.slice(start, start + PAGE_SIZE);
 
             return {
                 success: true,
-                certificates: filtered,
+                certificates: paginated,
                 pagination: {
                     firstPage: page === 1,
-                    lastPage: snapshot.docs.length < PAGE_SIZE,
-                    lastDoc: snapshot.docs[snapshot.docs.length - 1],
+                    lastPage: start + PAGE_SIZE >= total,
                 }
             };
         } catch (error) {

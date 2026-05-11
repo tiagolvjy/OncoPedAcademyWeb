@@ -1,6 +1,5 @@
 "use client";
 import { ReactNode, useState } from "react";
-import { Ionicons } from "../../types/ionicos";
 
 export interface AppInputProps {
     name?: string
@@ -13,18 +12,22 @@ export interface AppInputProps {
     className?: string
 }
 
-export default function AppSelect ({children, name, onChange, value, label, error = "", style = {}, className = ''}: AppInputProps ) {
-    // -------------------------------------------------------------------------
-    const [ showPassword, setShowPassword ] = useState(false);
-    const [ touched, setTouched ] = useState(false);
-    // -------------------------------------------------------------------------
+export default function AppSelect({ children, name, onChange, value, label, error = "", style = {}, className = '' }: AppInputProps) {
+    const [touched, setTouched] = useState(false);
+
     return (
         <div className={className} style={style}>
             <p className="ff-default ml-3 mb-[-10px]">{label}</p>
             <div className="rounded-xl border-[2] border-[#dedede] p-2 flex bg-[#f5f5f5] my-2">
-                <select className="w-[100%]" onChange={onChange} onBlur={() => setTouched(true)} name={name} value={value}>
+                <select
+                    className="w-full bg-transparent outline-none cursor-pointer"
+                    onChange={onChange}
+                    onBlur={() => setTouched(true)}
+                    name={name}
+                    value={value}
+                >
                     {children}
-                </select>                
+                </select>
             </div>
             {touched && error && <p className="text-[tomato] ff-default text-[12px] text-right mt-[-10px]">{error}</p>}
         </div>

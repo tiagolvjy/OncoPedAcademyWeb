@@ -26,49 +26,46 @@ const QuestionnaireServices = {
      * Retorna lista paginada de questionários com filtros
      */
     getAll: async (
-            session: UserSession,
-            page: number,
-            filter: { title?: string; type?: string; status?: string } = {},
-            lastDoc?: DocumentSnapshot
-        ): Promise<{ success: boolean; questionnaires?: Questionnaire[]; pagination?: any }> => {
-            try {
-                let q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'), limit(PAGE_SIZE));
+        session: UserSession,
+        page: number,
+        filter: { title?: string; type?: string; status?: string } = {},
+    ): Promise<{ success: boolean; questionnaires?: Questionnaire[]; pagination?: any }> => {
+        try {
+            const snapshot = await getDocs(collection(db, COLLECTION));
+            let questionnaires = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Questionnaire));
 
-                if (session.role === 'doctor')
-                    q = query(q, where('authorId', '==', session.uid));
+            if (session.role === 'doctor')
+                questionnaires = questionnaires.filter(q => q.authorId === session.uid);
 
-                if (filter.type && filter.type !== '-1')
-                    q = query(q, where('type', '==', filter.type));
+            if (filter.type && filter.type !== '-1')
+                questionnaires = questionnaires.filter(q => q.type === filter.type);
 
-                if (filter.status && filter.status !== '-1')
-                    q = query(q, where('status', '==', filter.status));
+            if (filter.status && filter.status !== '-1')
+                questionnaires = questionnaires.filter(q => q.status === filter.status);
 
-                if (page > 1 && lastDoc)
-                    q = query(q, startAfter(lastDoc));
+            if (filter.title)
+                questionnaires = questionnaires.filter(q => q.title.toLowerCase().includes(filter.title!.toLowerCase()));
 
-                const snapshot = await getDocs(q);
-                const questionnaires = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Questionnaire));
+            // Ordenar por data de criação desc
+            questionnaires.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-                const filtered = questionnaires.filter(q => {
-                    if (filter.title && !q.title.toLowerCase().includes(filter.title.toLowerCase()))
-                        return false;
-                    return true;
-                });
+            const total = questionnaires.length;
+            const start = (page - 1) * PAGE_SIZE;
+            const paginated = questionnaires.slice(start, start + PAGE_SIZE);
 
-                return {
-                    success: true,
-                    questionnaires: filtered,
-                    pagination: {
-                        firstPage: page === 1,
-                        lastPage: snapshot.docs.length < PAGE_SIZE,
-                        lastDoc: snapshot.docs[snapshot.docs.length - 1],
-                    }
-                };
-            } catch (error) {
-                console.error(error);
-                return { success: false };
-            }
-        },
+            return {
+                success: true,
+                questionnaires: paginated,
+                pagination: {
+                    firstPage: page === 1,
+                    lastPage: start + PAGE_SIZE >= total,
+                }
+            };
+        } catch (error) {
+            console.error(error);
+            return { success: false };
+        }
+    },
 
     /**
      * Retorna um questionário pelo ID
