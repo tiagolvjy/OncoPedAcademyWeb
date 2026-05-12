@@ -1,5 +1,6 @@
 "use client";
 import { AppButton, AppInput, AppSelect } from "@/themes/components";
+import PhotoUpload from "@/themes/components/photo-upload";
 import { Formik } from "formik";
 import * as Yup from 'yup';
 import CourseServices from "@/services/courses";
@@ -13,6 +14,7 @@ export default function CourseEditForm({ courseID }: { courseID: string }) {
 
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
+    const [coverImage, setCoverImage] = useState<string | null>(null);
     const [course, setCourse] = useState<Partial<Course>>({
         title: '',
         description: '',
@@ -25,13 +27,13 @@ export default function CourseEditForm({ courseID }: { courseID: string }) {
         (async () => {
             const { success, course } = await CourseServices.getById(courseID);
             if (success && course) {
-                // Verifica permissão — médico só edita o próprio curso
                 if (session?.role === 'doctor' && course.authorId !== session.uid) {
                     setFlashData({ error: 'Sem permissão para editar este curso.' });
                     router.replace('/admin/cursos');
                     return;
                 }
                 setCourse(course);
+                setCoverImage(course.coverImage ?? null);
             } else {
                 setFlashData({ error: 'Curso não encontrado.' });
                 router.replace('/admin/cursos');
@@ -46,6 +48,7 @@ export default function CourseEditForm({ courseID }: { courseID: string }) {
             description: data.description,
             duration: Number(data.duration),
             hasCertificate: data.hasCertificate === 'true',
+            coverImage: coverImage ?? null,
         });
         if (success) {
             setFlashData({ success: 'Curso atualizado com sucesso!' });
@@ -76,6 +79,15 @@ export default function CourseEditForm({ courseID }: { courseID: string }) {
         >
             {({ handleChange, handleSubmit, isSubmitting, isValid, errors, values }) => (
                 <form>
+                    {/* CAPA DO CURSO */}
+                    <p className="ff-default ml-3 mb-1">Capa do curso:</p>
+                    <PhotoUpload
+                        currentURL={coverImage}
+                        onUpload={(url) => setCoverImage(url)}
+                        folder="courses"
+                        shape="square"
+                    />
+
                     <AppInput
                         placeholder="Digite o título do curso"
                         label="Título:"

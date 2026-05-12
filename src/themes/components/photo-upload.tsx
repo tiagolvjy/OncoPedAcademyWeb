@@ -6,9 +6,10 @@ interface PhotoUploadProps {
     currentURL?: string | null;
     onUpload: (url: string) => void;
     folder?: string;
+    shape?: 'circle' | 'square';
 }
 
-export default function PhotoUpload({ currentURL, onUpload, folder = 'profile' }: PhotoUploadProps) {
+export default function PhotoUpload({ currentURL, onUpload, folder = 'profile', shape = 'circle' }: PhotoUploadProps) {
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [previewURL, setPreviewURL] = useState<string | null>(currentURL ?? null);
@@ -56,12 +57,14 @@ export default function PhotoUpload({ currentURL, onUpload, folder = 'profile' }
         <div className="flex items-center gap-4 mb-4">
             {/* AVATAR */}
             <div
-                className="relative w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0"
-                style={{ minWidth: 80, minHeight: 80 }}
+                className={`relative overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0 ${
+                    shape === 'square' ? 'w-[120px] h-[80px] rounded-lg' : 'w-[80px] h-[80px] rounded-full'
+                }`}
+                style={{ minWidth: shape === 'square' ? 120 : 80, minHeight: 80 }}
             >
                 {previewURL
-                    ? <img src={previewURL} alt="Foto de perfil" className="w-full h-full object-cover" />
-                    : <i className="ion-person text-[40px] text-gray-400" />
+                    ? <img src={previewURL} alt="Capa" className="w-full h-full object-cover" />
+                    : <i className={`text-gray-400 ${shape === 'square' ? 'ion-image text-[36px]' : 'ion-person text-[40px]'}`} />
                 }
             </div>
 
