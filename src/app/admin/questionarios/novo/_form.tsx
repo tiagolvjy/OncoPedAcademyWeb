@@ -28,14 +28,13 @@ export default function QuestionnaireForm() {
     const handleOnSubmit = async (data: any) => {
         if (!session) return;
         setError(null);
-        const isLeveling = data.type === 'leveling';
         const selectedCourse = courses.find(c => c.id === data.courseId);
 
         const { success, id, error } = await QuestionnaireServices.create(session, {
             title: data.title,
             type: data.type,
-            courseId: isLeveling ? undefined : data.courseId,
-            courseTitle: isLeveling ? undefined : selectedCourse?.title,
+            courseId: data.courseId,
+            courseTitle: selectedCourse?.title,
             timeLimit: data.timeLimit ? Number(data.timeLimit) : undefined,
             passingScore: data.passingScore ? Number(data.passingScore) : undefined,
         });
@@ -52,7 +51,7 @@ export default function QuestionnaireForm() {
         <Formik
             initialValues={{
                 title: '',
-                type: 'leveling',
+                type: 'pre_content',
                 courseId: '',
                 timeLimit: '',
                 passingScore: '',
@@ -60,10 +59,7 @@ export default function QuestionnaireForm() {
             validationSchema={Yup.object({
                 title: Yup.string().required('Campo obrigatório'),
                 type: Yup.string().required('Campo obrigatório'),
-                courseId: Yup.string().when('type', {
-                    is: (val: string) => val !== 'leveling',
-                    then: (s) => s.required('Selecione um curso'),
-                }),
+                courseId: Yup.string().required('Selecione um curso'),
                 passingScore: Yup.number().when('type', {
                     is: 'post_content',
                     then: (s) => s
@@ -90,25 +86,21 @@ export default function QuestionnaireForm() {
                         onChange={handleChange}
                         value={values.type}
                     >
-                        <option value="leveling">Nivelamento Geral</option>
                         <option value="pre_content">Pré-conteúdo</option>
                         <option value="post_content">Pós-conteúdo</option>
                     </AppSelect>
 
-                    {/* Curso — apenas para pre_content e post_content */}
-                    {values.type !== 'leveling' && (
-                        <AppSelect
-                            label="Curso vinculado:"
-                            name="courseId"
-                            onChange={handleChange}
-                            value={values.courseId}
-                        >
-                            <option value="">Selecione um curso</option>
-                            {courses.map(c => (
-                                <option key={c.id} value={c.id}>{c.title}</option>
-                            ))}
-                        </AppSelect>
-                    )}
+                    <AppSelect
+                        label="Curso vinculado:"
+                        name="courseId"
+                        onChange={handleChange}
+                        value={values.courseId}
+                    >
+                        <option value="">Selecione um curso</option>
+                        {courses.map(c => (
+                            <option key={c.id} value={c.id}>{c.title}</option>
+                        ))}
+                    </AppSelect>
 
                     <AppInput
                         placeholder="Tempo limite em minutos (opcional)"

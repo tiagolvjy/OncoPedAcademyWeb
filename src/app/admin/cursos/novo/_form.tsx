@@ -1,5 +1,6 @@
 "use client";
 import { AppButton, AppInput, AppSelect } from "@/themes/components";
+import PhotoUpload from "@/themes/components/photo-upload";
 import { Formik } from "formik";
 import * as Yup from 'yup';
 import CourseServices from "@/services/courses";
@@ -12,6 +13,7 @@ export default function CourseForm() {
 
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
+    const [coverImage, setCoverImage] = useState<string | null>(null);
     const session = UserServices.getCurrentUser();
     // ===========================================================================
     const handleOnSubmit = async (data: any) => {
@@ -22,6 +24,7 @@ export default function CourseForm() {
             description: data.description,
             duration: Number(data.duration),
             hasCertificate: data.hasCertificate === 'true',
+            coverImage: coverImage ?? null,
         });
         if (success && id) {
             setFlashData({ success: 'Curso criado com sucesso!' });
@@ -51,6 +54,15 @@ export default function CourseForm() {
         >
             {({ handleChange, handleSubmit, isSubmitting, isValid, errors, values }) => (
                 <form>
+                    {/* CAPA DO CURSO */}
+                    <p className="ff-default ml-3 mb-1">Capa do curso:</p>
+                    <PhotoUpload
+                        currentURL={coverImage}
+                        onUpload={(url) => setCoverImage(url)}
+                        folder="courses"
+                        shape="square"
+                    />
+
                     <AppInput
                         placeholder="Digite o título do curso"
                         label="Título:"
