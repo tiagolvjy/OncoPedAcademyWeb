@@ -87,7 +87,7 @@ const CourseServices = {
      */
     create: async (
         session: UserSession,
-        data: Pick<Course, 'title' | 'description' | 'hasCertificate' | 'duration'>
+        data: Pick<Course, 'title' | 'description' | 'hasCertificate' | 'duration'> & { coverImage?: string | null }
     ): Promise<{ success: boolean; id?: string; error?: string }> => {
         try {
             const ref = await addDoc(collection(db, COLLECTION), {
@@ -97,7 +97,7 @@ const CourseServices = {
                 status: 'draft' as CourseStatus,
                 verified: false,
                 embeddingIndexed: false,
-                coverImage: null,
+                coverImage: data.coverImage ?? null,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             });

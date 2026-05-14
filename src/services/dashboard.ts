@@ -73,15 +73,11 @@ const DashboardServices = {
      */
     getApprovalData: async (): Promise<{ success: boolean; data?: CourseApprovalData[] }> => {
         try {
-            const snapshot = await getDocs(
-                query(collection(db, 'questionnaire_results'), orderBy('completedAt', 'desc'))
-            );
-
+            const snapshot = await getDocs(collection(db, 'quiz_results'));
             if (snapshot.empty) return { success: true, data: [] };
 
             const results = snapshot.docs.map(d => d.data());
 
-            // Agrupa por curso
             const byCourse: Record<string, {
                 courseTitle: string;
                 preScores: number[];
@@ -93,18 +89,18 @@ const DashboardServices = {
                 if (!r.courseId || r.type === 'leveling') return;
                 if (!byCourse[r.courseId]) {
                     byCourse[r.courseId] = {
-                        courseTitle: r.courseTitle,
+                        courseTitle: r.courseTitle ?? r.questionnaireTitle ?? r.courseId,
                         preScores: [],
                         postScores: [],
                         students: new Set(),
                     };
                 }
-                if (r.type === 'pre_content')  byCourse[r.courseId].preScores.push(r.score);
-                if (r.type === 'post_content') byCourse[r.courseId].postScores.push(r.score);
+                const score = r.percentage ?? r.score ?? 0;
+                if (r.type === 'pre_content')  byCourse[r.courseId].preScores.push(score);
+                if (r.type === 'post_content') byCourse[r.courseId].postScores.push(score);
                 byCourse[r.courseId].students.add(r.userId);
             });
 
-            // Calcula médias
             const data: CourseApprovalData[] = Object.values(byCourse)
                 .filter(c => c.preScores.length > 0 && c.postScores.length > 0)
                 .map(c => {
@@ -128,63 +124,56 @@ const DashboardServices = {
     },
 
     getLevelDistribution: async (): Promise<{ success: boolean; data?: LevelDistribution[] }> => {
-    try {
-        const snapshot = await getDocs(
-            query(
-                collection(db, 'questionnaire_results'),
-                where('type', '==', 'leveling')
-            )
-        );
+        try {
+            const snapshot = await getDocs(
+                query(collection(db, 'quiz_results'), where('type', '==', 'leveling'))
+            );
 
-        if (snapshot.empty) return { success: true, data: [] };
+            if (snapshot.empty) return { success: true, data: [] };
 
-        // Pega o resultado mais recente por aluno
-        const byUser: Record<string, number> = {};
-        snapshot.docs.forEach(d => {
-            const data = d.data();
-            if (!data.userId || data.score === undefined) return;
-            // Mantém o mais recente (maior score ou último)
-            if (!(data.userId in byUser) || data.completedAt > (byUser[data.userId + '_date'] ?? ''))
-                byUser[data.userId] = data.score;
-        });
+            // Pega o resultado mais recente por aluno
+            const byUser: Record<string, number> = {};
+            snapshot.docs.forEach(d => {
+                const data = d.data();
+                if (!data.userId) return;
+                const score = data.percentage ?? data.score ?? 0;
+                if (!(data.userId in byUser)) byUser[data.userId] = score;
+            });
 
-        // Classifica por nível
-        const levels: Record<string, number> = {
-            'Muito Iniciante': 0,
-            'Iniciante': 0,
-            'Intermediário': 0,
-            'Avançado': 0,
-            'Especialista': 0,
-        };
+            const levels: Record<string, number> = {
+                'Muito Iniciante': 0,
+                'Iniciante': 0,
+                'Intermediário': 0,
+                'Avançado': 0,
+                'Especialista': 0,
+            };
 
-        Object.values(byUser).forEach(score => {
-            if (score <= 19)       levels['Muito Iniciante']++;
-            else if (score <= 39)  levels['Iniciante']++;
-            else if (score <= 59)  levels['Intermediário']++;
-            else if (score <= 79)  levels['Avançado']++;
-            else                   levels['Especialista']++;
-        });
+            Object.values(byUser).forEach(score => {
+                if (score <= 19)       levels['Muito Iniciante']++;
+                else if (score <= 39)  levels['Iniciante']++;
+                else if (score <= 59)  levels['Intermediário']++;
+                else if (score <= 79)  levels['Avançado']++;
+                else                   levels['Especialista']++;
+            });
 
-        const colors: Record<string, string> = {
-            'Muito Iniciante': '#94a3b8',
-            'Iniciante':       '#60a5fa',
-            'Intermediário':   '#34d399',
-            'Avançado':        '#f59e0b',
-            'Especialista':    '#4703D0',
-        };
+            const colors: Record<string, string> = {
+                'Muito Iniciante': '#94a3b8',
+                'Iniciante':       '#60a5fa',
+                'Intermediário':   '#34d399',
+                'Avançado':        '#f59e0b',
+                'Especialista':    '#4703D0',
+            };
 
-        const data: LevelDistribution[] = Object.entries(levels).map(([level, count]) => ({
-            level,
-            count,
-            color: colors[level],
-        }));
+            const data: LevelDistribution[] = Object.entries(levels).map(([level, count]) => ({
+                level, count, color: colors[level],
+            }));
 
-        return { success: true, data };
-    } catch (error) {
-        console.error(error);
-        return { success: false };
-    }
-},
+            return { success: true, data };
+        } catch (error) {
+            console.error(error);
+            return { success: false };
+        }
+    },
 };
 
 export default DashboardServices;
