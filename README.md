@@ -1,4 +1,4 @@
-# [PT-🇧🇷]
+# [PT]
 # OncoPed Academy — Web (Painel Administrativo)
 
 Painel administrativo da plataforma OncoPed Academy, desenvolvido para gerenciamento de cursos, módulos, aulas, questionários, usuários e certificados. Desenvolvido como Trabalho de Conclusão de Curso (TCC) no Centro Universitário CESMAC.
@@ -70,7 +70,7 @@ Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 
 --------------------------------------
 
-# [EN-🇬🇧]
+# [EN]
 
 # OncoPed Academy — Web (Admin Panel)
 
