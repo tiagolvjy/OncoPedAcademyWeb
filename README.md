@@ -60,7 +60,7 @@ npm run dev
 
 Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 
-## Equipe
+# Equipe
 
 **Desenvolvedores:** Ana Beatriz Ferreira Mafficioni · Tiago Couto Moraes  
 **Orientador:** Wagner de Oliveira Lima Palmeira de Araújo  
@@ -68,7 +68,7 @@ Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 **Colaboração:** Carlos Alberto Correia Lessa Filho  
 **Instituição:** Centro Universitário CESMAC — CITEC · 2026
 
-## [EN]
+# [EN]
 
 # OncoPed Academy — Web (Admin Panel)
 
