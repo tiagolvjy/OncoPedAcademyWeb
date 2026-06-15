@@ -68,8 +68,6 @@ Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 **Colaboração:** Carlos Alberto Correia Lessa Filho  
 **Instituição:** Centro Universitário CESMAC — CITEC · 2026
 
-# ==============================================================================
-
 # [EN]
 
 # OncoPed Academy — Web (Admin Panel)
